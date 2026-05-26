@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  color: #f8fafc;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-gradient-bg {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #0a0f2c 0%,
+    #0d1f6e 45%,
+    #1a0a3d 100%
+  );
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.glass-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-nav {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.35), 0 0 60px rgba(59, 130, 246, 0.12);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), 0 0 60px rgba(139, 92, 246, 0.12);
+}
+
+.glow-card {
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.profit-glow {
+  color: #4ade80;
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.6), 0 0 32px rgba(74, 222, 128, 0.25);
+}
+
+.glow-profit-box {
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.15), inset 0 0 20px rgba(74, 222, 128, 0.05);
+}
+
+.main-with-mobile-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .main-with-mobile-nav {
+    padding-bottom: 0;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.2), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(139, 92, 246, 0.12), transparent);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
