@@ -1,45 +1,55 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '../components/Button'
 import { GlowCard } from '../components/GlowCard'
 import { PageShell } from '../components/PageShell'
-import { useApp } from '../context/AppContext'
+import { supabase } from '../lib/supabaseClient'
 
 export function AdminView() {
-  const { allUsers, adminUpdateUser, isAdmin } = useApp()
-  const [selected, setSelected] = useState(allUsers[0]?.username ?? '')
+  const [users, setUsers] = useState<any[]>([])
+  const [selected, setSelected] = useState('')
   const [balance, setBalance] = useState('')
   const [vipLevel, setVipLevel] = useState('')
   const [referralCount, setReferralCount] = useState('')
 
-  if (!isAdmin) {
-    return (
-      <PageShell title="Access Denied">
-        <p className="text-red-400">Admin access requires admin0@gmail.com</p>
-      </PageShell>
-    )
-  }
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data } = await supabase.from('users').select('*')
+      if (data) {
+        setUsers(data)
+        if (data.length > 0) setSelected(data[0].username)
+      }
+    }
+    fetchUsers()
+  }, [])
 
-  const target = allUsers.find((u) => u.username === selected)
-
-  const apply = () => {
+  const apply = async () => {
     if (!selected) return
-    adminUpdateUser(selected, {
-      ...(balance !== '' ? { balance: parseFloat(balance) } : {}),
-      ...(vipLevel !== '' ? { vipLevel: parseInt(vipLevel, 10) } : {}),
-      ...(referralCount !== '' ? { referralCount: parseInt(referralCount, 10) } : {}),
-    })
-    setBalance('')
-    setVipLevel('')
-    setReferralCount('')
+    
+    const updates: any = {}
+    if (balance !== '') updates.balance = parseFloat(balance)
+    if (vipLevel !== '') updates.vipLevel = parseInt(vipLevel, 10)
+    if (referralCount !== '') updates.referralCount = parseInt(referralCount, 10)
+
+    const { error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('username', selected)
+
+    if (error) {
+      alert("Error: " + error.message)
+    } else {
+      alert("Changes applied successfully!")
+      window.location.reload()
+    }
   }
 
   return (
-    <PageShell title="Admin Panel" subtitle="Manage all user accounts.">
+    <PageShell title="Admin Panel" subtitle="Manage all user accounts via Supabase.">
       <div className="grid gap-6 lg:grid-cols-2">
         <GlowCard className="p-5">
-          <h2 className="font-bold text-white mb-4">All Users ({allUsers.length})</h2>
+          <h2 className="font-bold text-white mb-4">All Users ({users.length})</h2>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {allUsers.map((u) => (
+            {users.map((u) => (
               <button
                 key={u.username}
                 type="button"
@@ -53,7 +63,7 @@ export function AdminView() {
                 <p className="font-medium text-white">{u.username}</p>
                 <p className="text-xs text-slate-500">{u.email}</p>
                 <p className="text-xs text-emerald-400 mt-1">
-                  ${u.balance.toFixed(2)} · VIP{u.vipLevel} · Refs: {u.referralCount}
+                  ${(u.balance || 0).toFixed(2)} · VIP{u.vipLevel || 0} · Refs: {u.referralCount || 0}
                 </p>
               </button>
             ))}
@@ -62,14 +72,6 @@ export function AdminView() {
 
         <GlowCard highlight className="p-5 space-y-4">
           <h2 className="font-bold text-white">Edit: {selected}</h2>
-          {target && (
-            <div className="text-sm text-slate-400 space-y-1 mb-4">
-              <p>Balance: {target.balance.toFixed(2)}</p>
-              <p>VIP: {target.vipLevel}</p>
-              <p>Referrals: {target.referralCount}</p>
-              <p>Code: {target.referralCode}</p>
-            </div>
-          )}
           <AdminField label="New Balance" value={balance} onChange={setBalance} />
           <AdminField label="VIP Level (0-5)" value={vipLevel} onChange={setVipLevel} />
           <AdminField label="Referral Count" value={referralCount} onChange={setReferralCount} />
@@ -80,15 +82,7 @@ export function AdminView() {
   )
 }
 
-function AdminField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-}) {
+function AdminField({ label, value, onChange }: any) {
   return (
     <div>
       <label className="block text-xs text-slate-400 mb-1">{label}</label>
