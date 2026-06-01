@@ -38,7 +38,7 @@ interface AppContextValue {
     email: string
     phone: string
     referralCode?: string
-  }) => { success: boolean; error?: string }
+  }) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   buyVip: (tierId: number) => { success: boolean; message: string }
   submitDepositTxid: (txid: string, amount: number) => { success: boolean; message: string }
@@ -127,14 +127,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const register = useCallback(
-    (data: {
+    async (data: {
       username: string
       password: string
       email: string
       phone: string
       referralCode?: string
     }) => {
-      const result = registerUser(data)
+      const result = await registerUser(data)
       if (result.success) {
         refreshUser()
         setCurrentView('dashboard')
@@ -159,7 +159,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (user.balance < tierInfo.price) {
         return { success: false, message: 'Insufficient balance.' }
       }
-
       const contract = createContract(tierId)
       let updated: User = {
         ...user,
@@ -186,7 +185,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return { success: false, message: 'Enter a valid TXID.' }
       }
       if (amount <= 0) return { success: false, message: 'Enter deposit amount.' }
-
       let updated: User = {
         ...user,
         balance: user.balance + amount,
@@ -212,7 +210,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!user.withdrawalAddress.trim()) {
         return { success: false, message: 'Set your withdrawal address in Me first.' }
       }
-
       let updated: User = {
         ...user,
         balance: user.balance - amount,
