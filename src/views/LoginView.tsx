@@ -12,7 +12,7 @@ export function LoginView() {
   const [referralCode, setReferralCode] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (authMode === 'login') {
@@ -22,7 +22,7 @@ export function LoginView() {
         setError('Username, password, and email are required.')
         return
       }
-      const result = register({ username, password, email, phone, referralCode })
+      const result = await register({ username, password, email, phone, referralCode })
       if (!result.success) setError(result.error ?? 'Registration failed.')
     }
   }
