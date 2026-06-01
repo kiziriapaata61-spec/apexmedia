@@ -1,10 +1,7 @@
 import { ADMIN_EMAIL, type Transaction, type User } from '../types'
-import {
-  DEPOSIT_ADDRESSES,
-  generateUniqueReferralCode,
-  REGISTRATION_BONUS,
-} from '../data/vipTiers'
+import { DEPOSIT_ADDRESSES, generateUniqueReferralCode, REGISTRATION_BONUS } from '../data/vipTiers'
 import { migrateUserContracts } from './contracts'
+import { supabase } from './supabaseClient'
 
 const USERS_KEY = 'apex-media-v2-users'
 const SESSION_KEY = 'apex-media-v2-session'
@@ -104,15 +101,23 @@ export function saveUser(user: User) {
   const users = loadUsers()
   users[user.username.toLowerCase()] = user
   saveUsers(users)
+  supabase.from('users').upsert({
+    id: user.username.toLowerCase(),
+    username: user.username,
+    email: user.email,
+    balance: user.balance,
+    vip_level: user.vipLevel,
+    referral_count: user.referralCount,
+  })
 }
 
-export function registerUser(data: {
+export async function registerUser(data: {
   username: string
   password: string
   email: string
   phone: string
   referralCode?: string
-}): { success: boolean; error?: string } {
+}): Promise<{ success: boolean; error?: string }> {
   const key = data.username.toLowerCase()
   const users = loadUsers()
   if (users[key]) return { success: false, error: 'Username already exists' }
@@ -155,6 +160,16 @@ export function registerUser(data: {
   users[key] = user
   saveUsers(users)
   setSession(data.username)
+
+  await supabase.from('users').upsert({
+    id: key,
+    username: user.username,
+    email: user.email,
+    balance: user.balance,
+    vip_level: user.vipLevel,
+    referral_count: user.referralCount,
+  })
+
   return { success: true }
 }
 
