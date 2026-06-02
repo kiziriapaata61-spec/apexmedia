@@ -18,6 +18,7 @@ import {
   registerUser,
   saveUser,
 } from '../lib/storage'
+import { supabase } from '../lib/supabaseClient'
 import type { AuthMode, GlobalState, User, ViewId } from '../types'
 import { ADMIN_EMAIL, MIN_WITHDRAWAL } from '../types'
 
@@ -31,7 +32,7 @@ interface AppContextValue {
   tick: number
   setView: (view: ViewId) => void
   setAuthMode: (mode: AuthMode) => void
-  login: (username: string, password: string) => boolean
+  login: (username: string, password: string) => Promise<boolean>
   register: (data: {
     username: string
     password: string
@@ -97,6 +98,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isAdmin = user?.email === ADMIN_EMAIL
 
   useEffect(() => {
+    const syncFromSupabase = async () => {
+      const current = getCurrentUser()
+      if (!current) return
+      const { data } = await supabase
+        .from('users')
+        .select('balance, vip_level, referral_count')
+        .eq('id', current.username.toLowerCase())
+        .single()
+      if (data) {
+        const updated = {
+          ...current,
+          balance: data.balance,
+          vipLevel: data.vip_level,
+          referralCount: data.referral_count,
+        }
+        saveUser(updated)
+        setUser(updated)
+      }
+    }
+    syncFromSupabase()
+  }, [])
+
+  useEffect(() => {
     const id = setInterval(() => {
       const current = getCurrentUser()
       if (!current?.contracts.length) {
@@ -117,9 +141,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(
-    (username: string, password: string) => {
+    async (username: string, password: string) => {
       if (!loginUser(username, password)) return false
-      refreshUser()
+      const current = getCurrentUser()
+      if (current) {
+        const { data } = await supabase
+          .from('users')
+          .select('balance, vip_level, referral_count')
+          .eq('id', username.toLowerCase())
+          .single()
+        if (data) {
+          const updated = {
+            ...current,
+            balance: data.balance,
+            vipLevel: data.vip_level,
+            referralCount: data.referral_count,
+          }
+          saveUser(updated)
+          setUser(updated)
+        } else {
+          refreshUser()
+        }
+      }
       setCurrentView('dashboard')
       return true
     },
