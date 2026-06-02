@@ -24,17 +24,14 @@ export function AdminView() {
 
   const apply = async () => {
     if (!selected) return
-    
     const updates: any = {}
     if (balance !== '') updates.balance = parseFloat(balance)
-    if (vipLevel !== '') updates.vipLevel = parseInt(vipLevel, 10)
-    if (referralCount !== '') updates.referralCount = parseInt(referralCount, 10)
-
+    if (vipLevel !== '') updates.vip_level = parseInt(vipLevel, 10)
+    if (referralCount !== '') updates.referral_count = parseInt(referralCount, 10)
     const { error } = await supabase
       .from('users')
       .update(updates)
       .eq('username', selected)
-
     if (error) {
       alert("Error: " + error.message)
     } else {
@@ -63,13 +60,12 @@ export function AdminView() {
                 <p className="font-medium text-white">{u.username}</p>
                 <p className="text-xs text-slate-500">{u.email}</p>
                 <p className="text-xs text-emerald-400 mt-1">
-                  ${(u.balance || 0).toFixed(2)} · VIP{u.vipLevel || 0} · Refs: {u.referralCount || 0}
+                  ${(u.balance || 0).toFixed(2)} · VIP{u.vip_level || 0} · Refs: {u.referral_count || 0}
                 </p>
               </button>
             ))}
           </div>
         </GlowCard>
-
         <GlowCard highlight className="p-5 space-y-4">
           <h2 className="font-bold text-white">Edit: {selected}</h2>
           <AdminField label="New Balance" value={balance} onChange={setBalance} />
