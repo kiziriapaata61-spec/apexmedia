@@ -108,6 +108,8 @@ export function saveUser(user: User) {
     balance: user.balance,
     vip_level: user.vipLevel,
     referral_count: user.referralCount,
+  }).then(({ error }) => {
+    if (error) alert('Supabase saveUser error: ' + error.message)
   })
 }
 
@@ -161,7 +163,7 @@ export async function registerUser(data: {
   saveUsers(users)
   setSession(data.username)
 
-  await supabase.from('users').upsert({
+  const { error } = await supabase.from('users').upsert({
     id: key,
     username: user.username,
     email: user.email,
@@ -169,6 +171,11 @@ export async function registerUser(data: {
     vip_level: user.vipLevel,
     referral_count: user.referralCount,
   })
+
+  if (error) {
+    alert('Supabase error: ' + error.message)
+    return { success: false, error: error.message }
+  }
 
   return { success: true }
 }
